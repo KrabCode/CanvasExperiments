@@ -1,46 +1,28 @@
+let gl, programInfo, buffers;
+
 main();
 
 //
 // Start here
 //
-function main() {
+async function main() {
     const canvas = document.querySelector('#glcanvas');
-    const gl = canvas.getContext('webgl');
-
-    // If we don't have a GL context, give up now
-
+    gl = canvas.getContext('webgl');
     if (!gl) {
         alert('Unable to initialize WebGL. Your browser or machine may not support it.');
         return;
     }
-
-    // Vertex shader program
-
-    const vsSource = `
-    attribute vec4 aVertexPosition;
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-    void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    }
-  `;
-
-    // Fragment shader program
-
-    const fsSource = `
-    void main() {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-  `;
+    const vert = await fetch('vert.glsl').then(response => response.text());
+    const frag = await fetch('frag.glsl').then(response => response.text());
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    const shaderProgram = initShaderProgram(gl, vert, frag);
 
     // Collect all the info needed to use the shader program.
     // Look up which attribute our shader program is using
     // for aVertexPosition and look up uniform locations.
-    const programInfo = {
+    programInfo = {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
@@ -48,15 +30,20 @@ function main() {
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            resolution: gl.getUniformLocation(shaderProgram, 'resolution'),
+            time: gl.getUniformLocation(shaderProgram, 'time')
         },
     };
 
     // Here's where we call the routine that builds all the
     // objects we'll be drawing.
-    const buffers = initBuffers(gl);
+     buffers = initBuffers(gl);
+     requestAnimationFrame(renderLoop);
+}
 
-    // Draw the scene
-    drawScene(gl, programInfo, buffers);
+function renderLoop(time){
+    drawScene(gl, programInfo, buffers, time);
+    requestAnimationFrame(renderLoop);
 }
 
 //
@@ -101,7 +88,7 @@ function initBuffers(gl) {
 //
 // Draw the scene.
 //
-function drawScene(gl, programInfo, buffers) {
+function drawScene(gl, programInfo, buffers, time) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -141,7 +128,7 @@ function drawScene(gl, programInfo, buffers) {
 
     mat4.translate(modelViewMatrix,     // destination matrix
         modelViewMatrix,     // matrix to translate
-        [-0.0, 0.0, -6.0]);  // amount to translate
+        [-0.0, 0.0, -2.]);  // amount to translate
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -177,6 +164,10 @@ function drawScene(gl, programInfo, buffers) {
         programInfo.uniformLocations.modelViewMatrix,
         false,
         modelViewMatrix);
+
+    gl.uniform2fv(programInfo.uniformLocations.resolution, [800, 640]);
+    let t = time * 0.001;
+    gl.uniform1fv(programInfo.uniformLocations.time, [t]);
 
     {
         const offset = 0;
