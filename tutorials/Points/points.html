@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>WebGL Demo</title>
+    <style>
+        body{
+            margin: 0;
+        }
+        canvas {
+            background-color: black;
+            padding: 0;
+            margin: auto;
+            display: block;
+            width:  800px;
+            height: 800px;
+        }
+        video {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id="canvas" ></canvas>
+</body>
+</html>
+
+<script  id="vertex-shader-2d" type="x-shader/x-vertex">
+    attribute float a_index;
+
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    const float PI = 3.14159;
+
+    vec2 hash21(float p) {
+        vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.xx+p3.yz)*p3.zy);
+
+    }
+
+    void main() {
+        float i = a_index * PI * 2.;
+        float t = u_time*0.01;
+        float r = 0.5;
+        float x = r*cos(i+1.+t);
+        float y = r*sin(i+t);
+        float offsetRadius = 0.1;
+        vec2 offset = offsetRadius*(-1.+2.*hash21(i*70.215));
+        gl_Position = vec4(vec2(x, y)+offset, 0, 1);
+        gl_PointSize = 3.0;
+    }
+</script>
+
+<script  id="fragment-shader-2d" type="x-shader/x-fragment">
+    precision mediump float;
+
+    uniform float u_time;
+
+    void main() {
+        gl_FragColor = vec4(vec3(1), 1);
+    }
+</script>
+
+<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script>
+    "use strict";
+
+    let gl, canvas, program, indexAttributeLocation, resolutionUniformLocation, timeUniformLocation, indexBuffer;
+
+    function main() {
+        // Get A WebGL context
+        /** @type {HTMLCanvasElement} */
+        canvas = document.querySelector("#canvas");
+        gl = canvas.getContext("webgl");
+        if (!gl) {
+            return;
+        }
+
+        // setup GLSL program
+        program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
+
+        // look up where the vertex data needs to go.
+        indexAttributeLocation = gl.getAttribLocation(program, "a_index");
+
+        // look up uniform locations
+        resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+        timeUniformLocation = gl.getUniformLocation(program, "u_time");
+
+        // Create a buffer to put three 2d clip space points in
+        indexBuffer = gl.createBuffer();
+
+        // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = indexBuffer)
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+
+        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+        // Tell WebGL how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        requestAnimationFrame(drawScene);
+    }
+
+    function drawScene(time) {
+
+        // Clear the canvas
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Tell it to use our program (pair of shaders)
+        gl.useProgram(program);
+
+        // Turn on the attribute
+        gl.enableVertexAttribArray(indexAttributeLocation);
+
+        // Bind the position buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+
+        // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+        var size = 1;          // components per iteration
+        var type = gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            indexAttributeLocation, size, type, normalize, stride, offset);
+
+        // set the resolution
+        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+        gl.uniform1f(timeUniformLocation, time * 0.01);
+
+        let pointCount = 1000;
+        // draw 50 random rectangles in random colors
+        for (var i = 0; i < pointCount; ++i) {
+            // Setup a point
+            // This will write to positionBuffer because
+            // its the last thing we bound on the ARRAY_BUFFER
+            // bind point
+            setPoint(gl, i / pointCount);
+
+            // Draw the rectangle.
+            var primitiveType = gl.POINTS;
+            var offset = 0;
+            var count = 1;
+            gl.drawArrays(primitiveType, offset, count);
+        }
+        requestAnimationFrame(drawScene);
+    }
+
+    // Returns a random integer from 0 to range - 1.
+    function randomInt(range) {
+        return Math.floor(Math.random() * range);
+    }
+
+    function setPoint(gl, i){
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([i]), gl.STATIC_DRAW);
+    }
+
+    main();
+
+</script>
