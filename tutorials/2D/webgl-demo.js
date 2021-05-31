@@ -174,6 +174,7 @@ function drawScene(gl, programInfo, buffers, time) {
         const vertexCount = 4;
         gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
     }
+    webglUtils.create
 }
 
 //

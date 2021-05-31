@@ -1,0 +1,11 @@
+@import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+.divcanvas {
+    position: relative;
+    display: inline-block;
+}
+canvas {
+    display: block;
+}
+.iframe .divcanvas {
+    display: block;
+}
