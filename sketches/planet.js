@@ -57,7 +57,7 @@ function updateCamera() {
 
     // Compute the camera's matrix
     var camera = [100, 150, 200];
-    var target = [0, 35, 0];
+    var target = [0, -35, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(camera, target, up);
 
@@ -109,24 +109,28 @@ function setupShapes() {
     let subdivisionsHeight = 64;
     let sphereBufferInfo = primitives.createSphereWithVertexColorsBufferInfo(gl, radius, subdivisionsAxis, subdivisionsHeight);
     let sphereUniforms = {
-        u_colorMult: [1, 0.5, 1, 1],
+        u_colorMult: [1, 0.3, 0.3, 1],
         u_matrix: m4.identity(),
     };
-    shapes.push({
-            programInfo: programInfo,
-            bufferInfo: sphereBufferInfo,
-            uniforms: sphereUniforms,
-            update: function (time) {
-                let matrix = m4.translate(worldViewProjectionMatrix, 0, 0, 0);
-                this.uniforms.u_matrix = matrix;
-            }
-        }
-    );
+    let sphere = {
+        programInfo: programInfo,
+        bufferInfo: sphereBufferInfo,
+        uniforms: sphereUniforms,
+        radius: radius,
+        update: function (time) {
+            let matrix = m4.translate(worldViewProjectionMatrix, 0, 0, 0);
+            this.uniforms.u_matrix = matrix;
 
-    for(let i = 0; i < 50; i++) {
-        radius = 5;
-        subdivisionsAxis = 32;
-        subdivisionsHeight = 64;
+        }
+    }
+    shapes.push(sphere);
+
+    let asteroidCount = 1000;
+    for(let i = 0; i < asteroidCount; i++) {
+        let iNorm = map(i, 0, asteroidCount-1, 0, 1);
+        radius = Math.min(10, 0.3+randomGaussian());
+        subdivisionsAxis = 8;
+        subdivisionsHeight = 16;
         let asteroidBufferInfo = primitives.createSphereWithVertexColorsBufferInfo(gl, radius, subdivisionsAxis, subdivisionsHeight);
         let asteroidUniforms = {
             u_colorMult: [1, 1.0, 1, 1],
@@ -136,10 +140,17 @@ function setupShapes() {
             programInfo: programInfo,
             bufferInfo: asteroidBufferInfo,
             uniforms: asteroidUniforms,
+            translate: [-25+50*Math.random(),-20+40*Math.random(),-25+50*Math.random()],
+            orbitRadius: Math.random(),
             update: function (time) {
                 let matrix = m4.translate(worldViewProjectionMatrix, 0, 0, 0);
-                matrix = m4.xRotate(matrix, i + time); // TODO spin me right round
-                matrix = m4.translate(matrix, 100, 0, 0);
+                let orbitSpeed = 0.2;
+
+                let x = (sphere.radius*2+100*this.orbitRadius)*Math.cos(orbitSpeed*time+iNorm * Math.PI * 2) + this.translate[0];
+                let y = this.translate[1];
+                let z = (sphere.radius*2+100*this.orbitRadius)*Math.sin(orbitSpeed*time+iNorm * Math.PI * 2) + this.translate[2];
+                matrix = m4.translate(matrix, x, y, z);
+                matrix = m4.xRotate(matrix, time); // TODO spin me right round
                 this.uniforms.u_matrix = matrix;
             }
         }
