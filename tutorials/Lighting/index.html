@@ -1,0 +1,77 @@
+
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<div id="uiContainer">
+    <div id="ui">
+        <div id="fRotation"></div>
+    </div>
+</div>
+<style>
+    @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+    body {
+        margin: 0;
+        background-color: black;
+    }
+    canvas {
+        background-color: black;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+    }
+</style>
+<!-- vertex shader -->
+<script  id="vertex-shader-3d" type="x-shader/x-vertex">
+    attribute vec4 a_position;
+    attribute vec3 a_normal;
+
+    uniform mat4 u_worldViewProjection;
+    uniform mat4 u_worldInverseTranspose;
+
+    varying vec3 v_normal;
+
+    void main() {
+        // Multiply the position by the matrix.
+        gl_Position = u_worldViewProjection * a_position;
+
+        // orient the normals and pass to the fragment shader
+        v_normal = mat3(u_worldInverseTranspose) * a_normal;
+    }
+</script>
+<!-- fragment shader -->
+<script  id="fragment-shader-3d" type="x-shader/x-fragment">
+    precision mediump float;
+
+    // Passed in from the vertex shader.
+    varying vec3 v_normal;
+
+    uniform vec3 u_reverseLightDirection;
+    uniform vec4 u_color;
+
+    void main() {
+        // because v_normal is a varying it's interpolated
+        // so it will not be a unit vector. Normalizing it
+        // will make it a unit vector again
+        vec3 normal = normalize(v_normal);
+
+        float light = dot(normal, u_reverseLightDirection);
+
+        gl_FragColor = u_color;
+
+        // Lets multiply just the color portion (not the alpha)
+        // by the light
+//        gl_FragColor.rgb *= u_color;
+    }
+</script><!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/primitives.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/chroma.min.js"></script>
+<script src="index.js"></script>

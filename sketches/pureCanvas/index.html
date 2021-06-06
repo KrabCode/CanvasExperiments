@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script type="application/javascript">
+        let lastLoop;
+        function draw(time) {
+
+            let thisLoop = new Date();
+            let fps = 1000 / (thisLoop - lastLoop);
+            lastLoop = thisLoop;
+            // console.log(fps);
+
+            let t = time * 0.0001;
+            let canvas = document.getElementById('canvas');
+            var ctx = canvas.getContext('2d');
+            ctx.resetTransform();
+            ctx.fillStyle = 'rgba(0,0,0, 1)';
+            ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+            ctx.translate(canvas.clientWidth/2, canvas.clientHeight/2);
+            // ctx.translate(canvas.clientWidth / 2, canvas.clientHeight / 2);
+
+            let count = 1000;
+            let size = 1;
+            for(let i = 0; i < count; i++) {
+                let iNorm = map(i, 0, count, 0, 1);
+                let radius = 200 * Math.sin(iNorm * Math.PI * 144 + t);
+                let x = radius * Math.cos(iNorm * Math.PI * 2 + t);
+                let y = radius * Math.sin(iNorm * Math.PI * 2 + t);
+                ctx.fillStyle = 'rgba(255,255,255, 1)';
+                ctx.fillRect(x-size, y-size, size*2, size*2);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function map(value, min1, max1, min2, max2) {
+            return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+        }
+
+        requestAnimationFrame(draw);
+    </script>
+</head>
+<body style="background-color: black;">
+<canvas id="canvas" width="1000" height="1000" style="background-color: beige;"></canvas>
+</body>
+</html>

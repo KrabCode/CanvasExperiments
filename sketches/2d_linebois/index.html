@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+    body{
+        margin: 0;
+    }
+    canvas {
+        background-color: black;
+        padding: 0;
+        margin: auto;
+        display: block;
+        width:  800px;
+        height: 800px;
+    }
+    video {
+        display: none;
+    }
+</style>
+</head>
+<body style="background-color: black;">
+<canvas id="webgl" ></canvas>
+</body>
+</html>
+<script src="../../lib/http_webglfundamentals.org_webgl_resources_webgl-utils.js"></script>
+<script src="../../utils/utils.js"></script>
+<script id="vertex-shader-2d" type="x-shader/x-fragment">
+
+  // an attribute will receive data from a buffer
+  attribute vec4 a_position;
+
+  // all shaders have a main function
+  void main() {
+
+    // gl_Position is a special variable a vertex shader
+    // is responsible for setting
+    gl_Position = a_position;
+  }
+
+</script>
+
+<script id="fragment-shader-2d" type="x-shader/x-vertex">
+
+  // fragment shaders don't have a default precision so we need
+  // to pick one. mediump is a good default
+  precision mediump float;
+
+  void main() {
+    // gl_FragColor is a special variable a fragment shader
+    // is responsible for setting
+    gl_FragColor = vec4(0.2, 0.5, 1, 1); // return reddish-purple
+  }
+
+</script>
+<script src="index.js"></script>

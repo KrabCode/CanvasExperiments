@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Planet</title>
 </head>
-<body>
+<body style="background-color: black;">
 <canvas id="myCanvas" style="width: 100%; height: 100%"></canvas>
 </body>
 </html>
@@ -16,16 +16,15 @@
 
     uniform mat4 u_worldViewProjection;
     uniform mat4 u_worldInverseTranspose;
-    uniform mat4 u_matrix;
 
     varying vec3 v_normal;
 
     void main() {
         // Multiply the position by the matrix.
-        gl_Position =  u_matrix * a_position;
+        gl_Position = u_worldViewProjection * a_position;
 
         // orient the normals and pass to the fragment shader
-        v_normal = mat3(u_matrix * u_worldInverseTranspose) * a_normal;
+        v_normal = mat3(u_worldInverseTranspose) * a_normal;
     }
 </script>
 
@@ -37,7 +36,6 @@
 
     uniform vec3 u_reverseLightDirection;
     uniform vec4 u_color;
-    uniform vec4 u_colorMult;
 
     void main() {
         // because v_normal is a varying it's interpolated
@@ -45,9 +43,9 @@
         // will make it a unit vector again
         vec3 normal = normalize(v_normal);
 
-        float light = clamp(dot(normal, u_reverseLightDirection), 0., 1.);
+        float light = dot(normal, u_reverseLightDirection);
 
-        gl_FragColor = u_color * u_colorMult;
+        gl_FragColor = vec4(vec3(1), 0);
 
         // Lets multiply just the color portion (not the alpha)
         // by the light

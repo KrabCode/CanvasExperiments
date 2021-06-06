@@ -166,7 +166,7 @@ function drawScene(gl, programInfo, buffers, time) {
         modelViewMatrix);
 
     gl.uniform2fv(programInfo.uniformLocations.resolution, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
-    let t = time * 0.001;
+    let t = time * 10.1;
     gl.uniform1fv(programInfo.uniformLocations.time, [t]);
 
     {

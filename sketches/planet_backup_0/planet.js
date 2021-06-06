@@ -16,8 +16,14 @@ function main(){
     requestAnimationFrame(mainLoop);
 }
 
+// const fpsElement = document.querySelector("#fps");
+let then = 0;
 function mainLoop(time) {
     time *= 0.001;
+    const deltaTime = time - then;
+    then = time;                            // remember time for next frame
+    const fps = 1 / deltaTime;             // compute frames per second
+    // fpsElement.textContent = fps.toFixed(1);  // update fps display
     clearCanvas();
     updateCamera();
     updateShapes(time);
@@ -43,8 +49,7 @@ function updateCamera() {
     }
 
     var fieldOfViewRadians = degToRad(60);
-    var projectionMatrix =
-        m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
+    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
     // Compute the camera's matrix using look at.
     var cameraPosition = [0, 0, 100];
@@ -61,8 +66,8 @@ function setupShapes() {
     // creates buffers with position, normal, texcoord, and vertex color
     // data for primitives by calling gl.createBuffer, gl.bindBuffer,
     // and gl.bufferData
-    let radius = 20;
-    let subdivisionsAxis = 12;
+    let radius = 30;
+    let subdivisionsAxis = 24;
     let subdivisionsHeight = 24;
     sphereBufferInfo = primitives.createSphereWithVertexColorsBufferInfo(gl, radius, subdivisionsAxis, subdivisionsHeight);
     sphereUniforms = {
@@ -79,6 +84,7 @@ function setupShapes() {
 }
 
 function updateShapes(time) {
+    time *= 8;
     // Setup all the needed attributes.
     sphereTranslation = [0, 0, 0];
     let matrix = m4.translate(viewProjectionMatrix,
@@ -86,7 +92,7 @@ function updateShapes(time) {
         sphereTranslation[1],
         sphereTranslation[2]);
     matrix = m4.xRotate(matrix, Math.PI * 0.1);
-    matrix = m4.zRotate(matrix, Math.PI * 0.15);
+    matrix = m4.zRotate(matrix, Math.PI * 0.15 + time * 0.1);
     matrix = m4.yRotate(matrix, -time);
     sphereUniforms.u_matrix = matrix;
 }
